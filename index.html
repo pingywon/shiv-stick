@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHIV: a pocket multitool for the M5Stack StickS3</title>
+<meta name="description" content="SHIV is firmware that turns a keychain-size M5Stack StickS3 into a pocket multitool: clock, weather, smart-home remote, scanners, games, and updates over Wi-Fi.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#05060f;--panel:#0f1530;--line:#22305f;--cyan:#19e3f2;--mag:#ff2fd0;--green:#3dff8a;--text:#f2f5ff;--muted:#a3addb}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:400 18px/1.55 "Barlow",system-ui,sans-serif}
+img{display:block;max-width:100%;height:auto}
+a{color:var(--cyan)}
+a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+header{padding:56px 0 0}
+.bar{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-left:10px solid var(--cyan);border-bottom:2px solid var(--mag);background:var(--panel);padding:10px 22px 6px 20px}
+h1{margin:0;font:700 clamp(84px,19vw,208px)/.8 "Barlow Condensed",sans-serif;color:var(--cyan);letter-spacing:.01em}
+.bar span{font:600 clamp(18px,2.6vw,30px)/1 "Barlow Condensed",sans-serif;color:var(--text);padding-bottom:10px;white-space:nowrap}
+.lede{margin:26px 0 0;font-size:clamp(21px,2.6vw,27px);line-height:1.35;max-width:40ch}
+.lede em{display:block;font-style:normal;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0 0}
+.btn{display:inline-flex;align-items:center;gap:12px;min-height:50px;padding:0 22px;border:2px solid var(--cyan);background:transparent;color:var(--text);text-decoration:none;font:600 22px/1 "Barlow Condensed",sans-serif;letter-spacing:.02em}
+.btn::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--cyan)}
+.btn.alt{border-color:var(--line)}
+.btn.alt::before{background:transparent;box-shadow:0 0 0 2px var(--mag) inset,0 0 0 5px var(--bg) inset,0 0 0 14px var(--mag) inset}
+.btn:hover{background:var(--panel);border-color:var(--green)}
+
+.strip{margin:44px 0 0;overflow-x:auto;border:1px solid var(--line);background:#000}
+.strip img{width:100%;height:auto}
+
+h2{margin:76px 0 20px;font:700 clamp(34px,4.6vw,48px)/1 "Barlow Condensed",sans-serif;color:var(--cyan)}
+.does{margin:0 0 30px;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px}
+.does li{display:flex;align-items:baseline;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:20px}
+.does li::before{content:"";flex:none;width:13px;height:13px;background:var(--green);transform:translateY(1px)}
+.tour{display:block;border:1px solid var(--line);background:#000}
+
+.pair{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,4fr);gap:44px;align-items:start}
+.pair p{margin:0 0 14px;max-width:44ch}
+.pair img{border:1px solid var(--line)}
+.pair .crop{display:block;aspect-ratio:1000/1232;overflow:hidden;border:1px solid var(--line)}
+.pair .crop img{border:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.pair.flip{grid-template-columns:minmax(0,4fr) minmax(0,5fr)}
+
+.made{margin:0;padding:0;list-style:none;max-width:60ch}
+.made li{padding:11px 0;border-bottom:1px solid var(--line)}
+
+footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;margin:84px 0 0;padding:20px 0 44px;border-top:2px solid var(--mag);color:var(--muted);font-size:16px}
+
+@media (max-width:900px){
+  .strip img{height:170px;width:auto;max-width:none}
+}
+@media (max-width:760px){
+  .does{grid-template-columns:1fr}
+  .pair,.pair.flip{grid-template-columns:1fr;gap:20px}
+  .bar span{display:none}
+}
+@media (max-width:520px){
+  .wrap{padding:0 16px}
+  header{padding-top:28px}
+  .btn{flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="bar"><h1>SHIV</h1><span>firmware 1.0.0</span></div>
+    <p class="lede">A pocket multitool for the M5Stack StickS3. <em>Two buttons and one tiny screen.</em></p>
+    <div class="actions">
+      <a class="btn" href="https://github.com/pingywon/shiv-stick">See the code on GitHub</a>
+      <a class="btn alt" href="https://github.com/pingywon/shiv-stick#install">How to install it</a>
+    </div>
+    <div class="strip" tabindex="0" role="img" aria-label="Five SHIV screens: clock, weather, Pi-hole stats, sound spectrum and the virtual pet"><img src="img/hero.png" width="2512" height="310" alt=""></div>
+  </header>
+
+  <main>
+    <h2>What it does</h2>
+    <ul class="does">
+      <li>Clock, timers and weather</li>
+      <li>Pi-hole stats and a one-press pause</li>
+      <li>Home Assistant lights and scenes</li>
+      <li>Wi-Fi, Bluetooth and infrared scanners</li>
+      <li>A remote that learns infrared codes</li>
+      <li>Buttons that fire any web request</li>
+      <li>Three small games and a virtual pet</li>
+      <li>A live sound spectrum from the mic</li>
+    </ul>
+    <a class="tour" href="img/tour.png"><img src="img/tour.png" width="2004" height="878" loading="lazy" alt="Twelve SHIV screens, among them a timer, host checks, lights, a remote, a level, games and a spectrum"></a>
+
+    <h2>It hosts its own settings page</h2>
+    <div class="pair">
+      <div>
+        <p>Open it from any browser on your Wi-Fi.</p>
+        <p>See what is on the screen, change settings, and send a message to the stick.</p>
+      </div>
+      <a class="crop" href="img/panel.png"><img src="img/panel.png" width="1000" height="1500" loading="lazy" alt="The settings page: a live copy of the screen, status tiles, and a box to send a message to the stick"></a>
+    </div>
+
+    <h2>It updates itself</h2>
+    <div class="pair flip">
+      <img src="img/selfupdate.png" width="1508" height="449" loading="lazy" alt="Two screens: Update ready with an Install button, then Updating at 62 percent">
+      <div>
+        <p>Point it at a firmware list on your network.</p>
+        <p>When a new build shows up, press one button. It installs over Wi-Fi.</p>
+      </div>
+    </div>
+
+    <h2>How it is made</h2>
+    <ul class="made">
+      <li>C++ for the ESP32-S3, built with Arduino.</li>
+      <li>No StickS3? Most of the code ports to other ESP32-S3 boards with a screen.</li>
+      <li>MIT licensed. <a href="https://github.com/pingywon/shiv-stick/blob/main/CHANGELOG.md">Read the changelog.</a></li>
+    </ul>
+  </main>
+
+  <footer>
+    <span>SHIV firmware 1.0.0. <a href="https://github.com/pingywon/shiv-stick">github.com/pingywon/shiv-stick</a></span>
+    <span>Page v1.0.0</span>
+  </footer>
+</div>
+</body>
+</html>
