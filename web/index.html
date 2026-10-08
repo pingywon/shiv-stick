@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SHIV // control</title>
+<link rel="icon" href="/favicon.svg">
+<style>
+:root{--bg:#04050e;--pan:#0d1226;--pan2:#141c3a;--fg:#eaf6ff;--dim:#8fa3cc;--cy:#00f0ff;--mg:#ff2bd6;--a3:#7a5cff;--ok:#3dff8b;--warn:#ffe14a;--bad:#ff4058}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 ui-monospace,Menlo,Consolas,monospace;padding-bottom:70px;
+ background-image:linear-gradient(rgba(0,240,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.035) 1px,transparent 1px);background-size:28px 28px}
+header{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:2px solid var(--cy);background:var(--pan);position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:26px;letter-spacing:6px;color:var(--cy);text-shadow:2px 0 var(--mg)}
+header .sub{color:var(--dim);font-size:13px}
+#pill{margin-left:auto;padding:4px 10px;border:1px solid var(--ok);color:var(--ok);font-size:13px}
+#pill.off{border-color:var(--bad);color:var(--bad)}
+nav{display:flex;flex-wrap:wrap;gap:6px;padding:10px 18px;background:#080b1a;border-bottom:1px solid var(--pan2)}
+nav button{background:none;border:1px solid var(--pan2);color:var(--dim);padding:8px 14px;font:inherit;cursor:pointer;letter-spacing:1px}
+nav button.on{border-color:var(--mg);color:var(--fg);background:var(--pan2);box-shadow:inset 0 -3px var(--mg)}
+main{max-width:980px;margin:0 auto;padding:18px}
+section{display:none}section.on{display:block}
+.card{background:var(--pan);border:1px solid var(--pan2);border-left:4px solid var(--cy);padding:16px;margin:0 0 16px}
+.card h2{margin:0 0 12px;font-size:17px;letter-spacing:2px;color:var(--cy)}
+.card h2 small{color:var(--dim);font-size:13px;letter-spacing:0;margin-left:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+label{display:block;color:var(--dim);font-size:13px;margin:0 0 4px}
+input,select,textarea{width:100%;background:#060919;color:var(--fg);border:1px solid var(--pan2);padding:9px 10px;font:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cy)}
+input[type=checkbox]{width:auto;transform:scale(1.3);margin-right:8px}
+button.b{background:var(--cy);color:#001014;border:0;padding:10px 18px;font:inherit;font-weight:700;letter-spacing:1px;cursor:pointer}
+button.b.mg{background:var(--mg);color:#140010}button.b.ghost{background:none;border:1px solid var(--dim);color:var(--fg)}
+button.b.bad{background:var(--bad);color:#fff}button.b:active{transform:translateY(1px)}
+button.b.armed{background:var(--warn);color:#140e00;border-color:var(--warn)}
+.row{display:flex;gap:8px;align-items:center;margin:0 0 8px;flex-wrap:wrap}.row>*{flex:1;min-width:110px}.row>button,.row>.fix{flex:0 0 auto;min-width:0}
+.hint{color:var(--dim);font-size:13px;margin:8px 0 0}.hint code,.code{color:var(--warn);word-break:break-all}
+.how{margin:10px 0 0}.how>button{background:none;border:0;padding:4px 0;color:var(--dim);font:inherit;font-size:13px;letter-spacing:1px;cursor:pointer}.how>button::after{content:' \25BE'}.how.open>button::after{content:' \25B4'}
+.how>div{display:none;color:var(--dim);font-size:13px;border-left:2px solid var(--pan2);padding:2px 0 2px 10px;margin-top:4px}.how.open>div{display:block}.how ul{margin:0;padding-left:18px}.how li{margin:3px 0}.how code{color:var(--warn)}
+#mirror{width:100%;max-width:480px;aspect-ratio:240/135;image-rendering:pixelated;border:2px solid var(--pan2);background:#000;display:block}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:#060919;border:1px solid var(--pan2);padding:10px}.stat b{display:block;font-size:20px;color:var(--fg)}.stat span{color:var(--dim);font-size:12px;letter-spacing:1px}
+.stats.bigs .stat b{font-size:30px;color:var(--cy)}
+.strow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--pan2)}.strow .n{flex:1 1 0;min-width:96px}.strow b{flex:0 1 auto;min-width:0;text-align:right}.strow button{flex:0 0 132px}
+.chk{display:flex;align-items:center;padding:7px 10px;background:#060919;border:1px solid var(--pan2)}
+.chk.lock{opacity:.55}
+#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--pan2);border:1px solid var(--mg);padding:10px 18px;display:none;z-index:9}
+#savebar{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;align-items:center;justify-content:center;gap:16px;padding:10px 18px;background:var(--pan);border-top:2px solid var(--warn)}#savebar b{color:var(--warn);letter-spacing:2px}
+.two{display:grid;grid-template-columns:minmax(260px,480px) 1fr;gap:16px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+.warnbox{border-left-color:var(--warn)}.warnbox h2{color:var(--warn)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}.seg button{flex:1;min-width:52px;background:var(--pan2);border:1px solid var(--dim);color:var(--fg);padding:8px 4px;cursor:pointer;font:inherit}
+.seg button.on{background:var(--cy);color:var(--bg);border-color:var(--cy)}
+.sec h2{display:flex;align-items:center}.sec h2 small{flex:1}.chev{margin-left:auto;background:none;border:1px solid var(--dim);color:var(--dim);width:36px;height:36px;font:inherit;cursor:pointer;transition:transform .2s}.sec.closed .chev{transform:rotate(180deg)}.sec.closed .body{display:none}.sec.closed h2{margin:0}
+</style>
+</head>
+<body>
+<header><h1>SHIV</h1><div class="sub">pocket daemon // control panel<br><span id="ver"></span></div><div id="pill" class="off">OFFLINE</div></header>
+<nav id="nav"></nav>
+<main>
+
+<section id="t-status">
+  <div class="card warnbox" id="pwwarn" style="display:none"><h2>NO PANEL PASSWORD</h2>Anyone on the network can open this page. Set one in <b>SYSTEM</b>.</div>
+  <div class="two">
+    <div class="card"><h2>LIVE SCREEN</h2>
+      <canvas id="mirror" width="240" height="135"></canvas>
+      <div class="row" style="margin-top:10px"><select id="jump"></select><button class="b ghost" onclick="jump()">SHOW ON STICK</button></div>
+    </div>
+    <div>
+      <div class="card"><h2>STATUS</h2><div class="stats" id="stats"></div></div>
+      <div class="card" style="border-left-color:var(--mg)"><h2 style="color:var(--mg)">PAGE THE STICK</h2>
+        <textarea id="pmsg" rows="3" maxlength="160" placeholder="Message, 160 characters max"></textarea>
+        <div class="row" style="margin-top:8px"><button class="b mg" onclick="sendPage()">SEND PAGE</button><button class="b ghost" onclick="post('/api/pages/clear').then(()=>toast('Pages cleared'))">CLEAR ALL ON STICK</button></div>
+        <div class="how"><button onclick="howTog(this)">FROM A SCRIPT</button><div><span class="code" id="curl"></span></div></div>
+      </div>
+      <div class="card"><h2>PI-HOLE <small id="pistate"></small></h2>
+        <div class="row"><button class="b" id="pibtn" onclick="piToggle()">...</button></div>
+        <p class="hint">Blocking comes back on by itself when the time is up.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section id="t-screens">
+  <div class="card"><h2>SCREENS <small>untick to hide</small></h2><div class="grid" id="screens"></div></div>
+  <div class="card"><h2>SIDE-CLICK LOOP <small>what a SIDE click walks through</small></h2><div id="favsc"></div>
+    <div class="row" style="margin-top:8px"><select id="favadd"></select><button class="b ghost" onclick="favAdd()">ADD</button></div>
+    <div class="how"><button onclick="howTog(this)">HOW IT WORKS</button><div><ul>
+      <li>Hold SIDE = GO TO: pick a group, then a screen.</li>
+      <li>Empty list = SIDE walks every enabled screen.</li></ul></div></div></div>
+  <div class="card"><h2>LOOK &amp; FEEL</h2><div class="grid">
+    <div><label>Theme</label><select data-s="theme"><option value="0">NEON (cyan / magenta)</option><option value="1">MATRIX (green phosphor)</option><option value="2">AMBER (retro CRT)</option></select></div>
+    <div><label>Clock face</label><select data-s="clockFace"><option value="0">Giant digits</option><option value="1">Binary</option><option value="2">Unix epoch / hex</option><option value="3">System monitor</option></select></div>
+    <div><label>Brightness (20-255)</label><input type="number" min="20" max="255" data-s="brightness"></div>
+    <div><label>Volume (0-255)</label><input type="number" min="0" max="255" data-s="volume"></div>
+    <div><label>Sound</label><select data-s="mute"><option value="false">On</option><option value="true">Muted</option></select></div>
+    <div><label>Screen rotation</label><select data-s="flip"><option value="0">Auto flip</option><option value="1">Normal</option><option value="2">Flipped</option></select></div>
+  </div></div>
+  <div class="card"><h2>SCREEN TIMEOUTS <small>seconds</small></h2><div class="grid">
+    <div><label>Dim after</label><input type="number" min="5" max="600" data-s="dimS"></div>
+    <div><label>Off after</label><input type="number" min="10" max="900" data-s="offS"></div>
+    <div><label>Sleep after off (min, 0 = never)</label><input type="number" min="0" max="120" data-s="sleepMin"></div>
+  </div><p class="hint">On USB the screen stays on. Asleep = off Wi-Fi until a button press.</p></div>
+  <div class="card"><h2>TIMER <small>Pomodoro</small></h2><div class="grid">
+    <div><label>Focus / break (min)</label><div class="row"><input type="number" min="1" max="120" data-s="focusMin"><input type="number" min="1" max="60" data-s="breakMin"></div></div>
+  </div></div>
+</section>
+
+<section id="t-data">
+  <div class="card"><h2>HOME ASSISTANT</h2><div class="grid">
+    <div><label>Address</label><input data-k="haUrl"></div><div><label>Long-lived access token</label><input type="password" data-k="haToken" data-secret></div></div>
+    <div class="row" style="margin-top:10px"><button class="b ghost" onclick="haTest()">TEST CONNECTION</button><span id="hamsg" class="hint" style="margin:0;flex:3"></span></div>
+    <div class="how"><button onclick="howTog(this)">HOW IT WORKS</button><div><ul>
+      <li>Token: HA &rarr; your profile &rarr; Security &rarr; Long-lived access tokens. A non-admin user is fine.</li>
+      <li>Then open HA CONTROL on the stick. Favorites below are optional shortcuts.</li></ul></div></div></div>
+  <div class="card"><h2>FAVORITES <small>up to 6, on the HOME screen</small></h2><div id="favs"></div>
+    <div class="row"><button class="b ghost" onclick="addRow('favs')">+ ADD FAVORITE</button><button class="b ghost" onclick="loadEntities()">LOAD HA LIST</button></div>
+    <datalist id="ents"></datalist>
+    <p class="hint">Labels: 12 characters. Locks are refused on purpose.</p></div>
+  <div class="card"><h2>MQTT <small>the ticker screen</small></h2><div class="grid">
+    <div><label>Broker address</label><input data-k="mqttHost" placeholder="192.168.1.10 (blank = off)"></div><div><label>Port</label><input type="number" data-k="mqttPort"></div>
+    <div><label>Topics (comma-separated)</label><input data-k="mqttTopics" placeholder="# for everything"></div>
+    <div><label>Username</label><input data-k="mqttUser"></div><div><label>Password</label><input type="password" data-k="mqttPass" data-secret></div></div>
+    <div class="how"><button onclick="howTog(this)">HOW IT WORKS</button><div><ul>
+      <li>The MQTT screen scrolls the latest message on each topic you subscribe to.</li>
+      <li>Read-only: the stick subscribes and displays; it does not publish anything of its own.</li></ul></div></div></div>
+  <div class="card"><h2>WEATHER</h2><div class="grid">
+    <div><label>Place name</label><input data-k="place"></div><div><label>Latitude</label><input data-k="lat" type="number" step="0.0001"></div><div><label>Longitude</label><input data-k="lon" type="number" step="0.0001"></div>
+    <div><label>Time zone rule</label><input data-k="tz"></div></div></div>
+  <div class="card"><h2>PI-HOLE <small>FRONT swaps v6 / v5</small></h2><div class="grid">
+    <div><label>New v6 address</label><input data-k="pi6Url"></div><div><label>v6 web password</label><input type="password" data-k="pi6Pass" data-secret></div>
+    <div><label>Old v5 address</label><input data-k="pi5Url"></div><div><label>v5 API token</label><input type="password" data-k="pi5Token" data-secret></div>
+    <div><label>Show first</label><select data-s="piSource"><option value="6">v6</option><option value="5">v5</option></select></div>
+    <div><label>Button controls</label><select data-s="piTarget"><option value="5">Old v5</option><option value="6">New v6</option></select></div>
+    <div><label>Disable for (hours, 1-24)</label><input type="number" min="1" max="24" data-s="piOffHours"></div></div></div>
+  <div class="card"><h2>SHOPIFY <small>store orders screen</small></h2><div class="grid">
+    <div><label>Store domain</label><input data-k="shopDomain" placeholder="yourstore.myshopify.com"></div><div><label>API version</label><input data-k="shopApiVer"></div>
+    <div><label>Admin API token (shpat_...)</label><input type="password" data-k="shopToken" data-secret></div>
+    <div><label>...or app client ID</label><input data-k="shopClientId"></div><div><label>and client secret</label><input type="password" data-k="shopClientSecret" data-secret></div></div>
+    <div class="how"><button onclick="howTog(this)">SAFETY NOTE</button><div>Use a token limited to <b>read_orders</b>: the stick can get lost. Secrets stay on the stick and are never shown again.</div></div></div>
+  <div class="card"><h2>CLAUDE JOBS</h2><label>Task Inbox feed address</label><input data-k="jobsUrl"></div>
+  <div class="card"><h2>LAN HOSTS <small>up to 8</small></h2><div id="hosts"></div><button class="b ghost" onclick="addRow('hosts')">+ ADD HOST</button></div>
+</section>
+
+<section id="t-macros">
+  <div class="card"><h2>MACROS <small>up to 6, hold FRONT on the stick</small></h2><div id="macros"></div>
+    <button class="b ghost" onclick="addRow('macros')">+ ADD MACRO</button>
+    <p class="hint">A web request the stick makes for you: a webhook or a script.</p></div>
+  <div class="card"><h2>IR CODES <small>learn on the stick: REMOTE &rarr; + LEARN NEW</small></h2><div id="irs"></div></div>
+</section>
+
+<section id="t-system">
+  <div class="card"><h2>WI-FI <small>joins the strongest in range</small></h2><div class="grid">
+    <div><label>Network 1</label><input data-w="0s"></div><div><label>Password 1</label><input type="password" data-w="0p" data-secret></div>
+    <div><label>Network 2</label><input data-w="1s"></div><div><label>Password 2</label><input type="password" data-w="1p" data-secret></div>
+    <div><label>Network 3</label><input data-w="2s"></div><div><label>Password 3</label><input type="password" data-w="2p" data-secret></div>
+    <div><label>Network 4</label><input data-w="3s"></div><div><label>Password 4</label><input type="password" data-w="3p" data-secret></div>
+    <div><label>Network 5</label><input data-w="4s"></div><div><label>Password 5</label><input type="password" data-w="4p" data-secret></div>
+    <div><label>Device name (http://NAME.local)</label><input data-k="host"></div></div></div>
+  <div class="card sec" id="s-mic" data-def="closed"><h2>MICROPHONE <small>the stick can listen</small><button class="chev" onclick="secTog(this)">&#9650;</button></h2><div class="body">
+    <div class="row" style="align-items:center"><label class="chk fix"><input type="checkbox" data-s="micOn">MIC ON</label><span class="fix hint" style="margin:0">sensitivity 1-9</span><input type="number" min="1" max="9" data-s="micSens" style="flex:0 1 80px"><span class="hint" style="margin:0;flex:2">nothing is recorded</span></div>
+    <div style="margin-top:8px"><label class="chk"><input type="checkbox" data-s="spectrumIdle">Spectrum idle face - a SPECTRUM screen, plus a strip on the clock, that dances to the room</label></div>
+    <div><label class="chk"><input type="checkbox" data-s="petHears">The daemon hears you - perks at your voice, dances to music, grumpy in a loud room</label></div>
+    <div class="how"><button class="b ghost" onclick="howTog(this)">HOW IT WORKS</button><div class="howbody">
+      <ul><li>The mic and the speaker share one bus, so the stick only listens when it is not making a tone.</li>
+      <li>Nothing is recorded or sent anywhere - the sound is turned into a loudness number and a set of bars on the stick, then thrown away.</li>
+      <li>Higher sensitivity reacts to quieter sounds. Start at 5.</li></ul></div></div></div></div>
+  <div class="card"><h2>ACCESS</h2><div class="grid">
+    <div><label>Panel password (user is <b>shiv</b>)</label><input type="password" data-k="webPass" data-secret></div>
+    <div><label>API key for scripts</label><input data-k="apiKey"></div></div></div>
+  <div class="card"><h2>BACKUP <small>never includes passwords</small></h2><div class="row"><button class="b ghost" onclick="backup()">DOWNLOAD SETTINGS</button><input type="file" id="rfile" accept=".json"><button class="b ghost" onclick="tap2(this,restore)">RESTORE</button></div></div>
+  <div class="card"><h2>AUTO-UPDATE <small>the stick updates itself</small></h2>
+    <div><label class="chk"><input type="checkbox" data-s="otaOn">Check for new versions and offer them on the stick (press FRONT to install)</label></div>
+    <div style="margin-top:6px"><label>Update source (manifest URL)</label><input data-k="otaUrl"></div>
+    <div class="row" style="margin-top:8px"><button class="b ghost" onclick="otaPost('check',this)">CHECK NOW</button><button class="b" id="otaInstall" onclick="tap2(this,()=>otaPost('install'))" style="display:none">INSTALL NOW</button></div>
+    <p class="hint" id="otamsg">-</p></div>
+  <div class="card" style="border-left-color:var(--mg)"><h2 style="color:var(--mg)">FIRMWARE UPDATE <small>manual .bin upload</small></h2>
+    <div class="row"><input type="file" id="fw" accept=".bin"><button class="b mg" onclick="tap2(this,flash)">UPLOAD &amp; FLASH</button></div>
+    <p class="hint" id="fwmsg">Pick the SHIV .bin, not the merged or bootloader file.</p></div>
+  <div class="card"><h2>POWER</h2><div class="row"><button class="b ghost" onclick="tap2(this,()=>post('/api/reboot'))">REBOOT</button><button class="b bad" onclick="tap2(this,()=>post('/api/portal'))">WI-FI SETUP MODE</button></div>
+    <p class="hint">Setup mode: the stick leaves this network and opens its own hotspot.</p></div>
+</section>
+</main>
+<div id="savebar"><b>UNSAVED CHANGES</b><button class="b" onclick="saveCfg()">SAVE</button></div>
+<div id="toast"></div>
+<script>
+const TABS=[['status','STATUS'],['screens','SCREENS'],['data','CONNECTIONS'],['macros','MACROS & IR'],['system','SYSTEM']],TABALIAS={home:'data',remote:'macros'};
+const LISTS={hosts:{max:8,f:[['name','Name',11],['addr','Address',39],['port','Port',5]]},
+ favs:{max:6,f:[['label','Label',12],['entity','Entity id, e.g. light.desk_lamp',47]]},
+ macros:{max:6,f:[['label','Label',12],['method','GET/POST',5],['url','http://...',127],['body','Body (optional)',127]]},
+};
+let CFG=null,ST=null;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+function toast(t,bad){const e=$('#toast');e.textContent=t;e.style.borderColor=bad?'var(--bad)':'var(--mg)';e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2600)}
+async function api(u,o){const r=await fetch(u,o);if(!r.ok)throw new Error(r.status+' '+(await r.text()).slice(0,80));const c=r.headers.get('content-type')||'';return c.includes('json')?r.json():r.text()}
+function post(u,b){return api(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})}).catch(e=>{toast(e.message,1);throw e})}
+function tab(n){n=TABALIAS[n]||n;$$('section').forEach(s=>s.classList.toggle('on',s.id=='t-'+n));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==n));try{localStorage.setItem('shivtab',n)}catch(e){}}
+function howTog(b){b.parentNode.classList.toggle('open')}
+function tap2(b,fn){if(b.dataset.arm!=null){clearTimeout(b._t);b.textContent=b.dataset.arm;delete b.dataset.arm;b.classList.remove('armed');fn();return}b.dataset.arm=b.textContent;b.textContent='TAP AGAIN';b.classList.add('armed');b._t=setTimeout(()=>{if(b.dataset.arm!=null){b.textContent=b.dataset.arm;delete b.dataset.arm;b.classList.remove('armed')}},3000)}
+let DIRTY=false;function dirty(on){DIRTY=on!==false;$('#savebar').style.display=DIRTY?'flex':'none'}
+function watchDirty(e){if(e.target.closest('[data-k],[data-s],[data-w],[data-sc],[data-row]'))dirty()}
+document.addEventListener('input',watchDirty);document.addEventListener('change',watchDirty);
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function rowHtml(kind,v){const L=LISTS[kind];return '<div class="row" data-row="'+kind+'">'+L.f.map(f=>f[0]=='entity'
+ ?'<input list="ents" data-f="'+f[0]+'" maxlength="'+f[2]+'" placeholder="'+esc(f[1])+'" value="'+esc(v[f[0]])+'">'
+ :f[4]=='lv'?lvSelect('data-f="'+f[0]+'" data-max="255" style="flex:0 1 120px"',+v[f[0]]||0)
+ :f.length>3?'<input type="number" min="0" max="'+f[3]+'" data-f="'+f[0]+'" data-max="'+f[3]+'" placeholder="'+esc(f[1])+'" title="'+esc(f[1])+'" value="'+esc(v[f[0]]??0)+'" style="flex:0 1 80px">'
+ :'<input data-f="'+f[0]+'" maxlength="'+f[2]+'" placeholder="'+esc(f[1])+'" value="'+esc(v[f[0]])+'"'+(f[0]=='label'||f[0]=='name'||f[0]=='method'||f[0]=='port'?' style="flex:0 1 150px"':'')+'>').join('')
+ +(kind=='macros'?'<button class="b ghost" onclick="runRow(this)">TEST</button>':'')+'<button class="b ghost" onclick="this.parentNode.remove();dirty()">&times;</button></div>'}
+function addRow(kind){const box=$('#'+kind);if(box.children.length>=LISTS[kind].max)return toast('That list is full',1);box.insertAdjacentHTML('beforeend',rowHtml(kind,kind=='macros'?{method:'GET'}:kind=='hosts'?{port:80}:{}));dirty()}
+function numIn(i){return Math.min(+i.max,Math.max(+i.min||0,+i.value||0))}
+function fld(i){return i.tagName=='SELECT'?+i.value:numIn(i)}
+function secTog(b){const s=b.closest('.sec');s.classList.toggle('closed');try{localStorage.setItem('sec-'+s.id,s.classList.contains('closed')?'1':'0')}catch(e){}}
+function secRestore(){$$('.sec').forEach(s=>{let v=null;try{v=localStorage.getItem('sec-'+s.id)}catch(e){}s.classList.toggle('closed',v==='1'||(v===null&&s.dataset.def==='closed'))})}
+function hex(c){return '#'+[c>>16&255,c>>8&255,c&255].map(v=>v.toString(16).padStart(2,'0')).join('')}
+function mixc(a,b,f){const A=[a>>16&255,a>>8&255,a&255],B=[b>>16&255,b>>8&255,b&255];return (A[0]+(B[0]-A[0])*f)<<16|(A[1]+(B[1]-A[1])*f)<<8|(A[2]+(B[2]-A[2])*f)}
+function themeApply(){if(!CFG||!CFG.themes)return;const t=CFG.themes[CFG.set.theme]||CFG.themes[0];if(!t)return;const c=t.c,r=document.documentElement.style;
+ r.setProperty('--bg',hex(c[0]));r.setProperty('--pan',hex(mixc(c[0],c[1],.6)));r.setProperty('--pan2',hex(c[1]));r.setProperty('--fg',hex(c[2]));r.setProperty('--dim',hex(c[3]));r.setProperty('--cy',hex(c[4]));r.setProperty('--mg',hex(c[5]));r.setProperty('--a3',hex(c[6]));r.setProperty('--warn',hex(c[7]));r.setProperty('--bad',hex(c[8]));r.setProperty('--ok',hex(c[9]))}
+function tv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#0ff'}
+function tabOn(n){return $('#t-'+n).classList.contains('on')}
+
+let FAV=[];
+function favFill(){FAV=(CFG.set.favOrder||[]).filter(i=>CFG.screens[i]!==undefined);favPaint();$('#favadd').innerHTML=CFG.screens.map((n,i)=>'<option value="'+i+'">'+esc(n)+'</option>').join('')}
+function favPaint(){$('#favsc').innerHTML=FAV.length?FAV.map((id,i)=>'<div class="row"><span style="flex:3;align-self:center">'+(i+1)+'. '+esc(CFG.screens[id])+'</span><button class="b ghost" onclick="favMove('+i+',-1)">&#9650;</button><button class="b ghost" onclick="favMove('+i+',1)">&#9660;</button><button class="b ghost" onclick="FAV.splice('+i+',1);favPaint();dirty()">&times;</button></div>').join(''):'<p class="hint">Empty: SIDE walks every enabled screen.</p>'}
+function favMove(i,d){const j=i+d;if(j<0||j>=FAV.length)return;[FAV[i],FAV[j]]=[FAV[j],FAV[i]];favPaint();dirty()}
+function favAdd(){const id=+$('#favadd').value;if(FAV.includes(id))return toast('Already in the loop',1);if(FAV.length>=12)return toast('12 stops max',1);FAV.push(id);favPaint();dirty()}
+function runRow(btn){const i=[...$('#macros').children].indexOf(btn.parentNode);post('/api/macro/run',{i}).then(()=>toast('Macro '+(i+1)+' sent - save first if you just edited it'))}
+function fill(){
+ $$('[data-k]').forEach(e=>{if(!e.hasAttribute('data-secret'))e.value=CFG[e.dataset.k]??'';else{e.value='';e.placeholder=CFG[e.dataset.k+'Set']?'saved · "-" erases':'not set'}});
+ $$('[data-s]').forEach(e=>{if(e.type=='checkbox')e.checked=!!CFG.set[e.dataset.s];else e.value=String(CFG.set[e.dataset.s])});
+ $$('[data-w]').forEach(e=>{const i=+e.dataset.w[0],w=CFG.wifi[i]||{};if(e.dataset.w[1]=='s')e.value=w.ssid||'';else{e.value='';e.placeholder=w.passSet?'saved · "-" erases':'not set / open'}});
+ for(const k in LISTS)$('#'+k).innerHTML=(CFG[k]||[]).map(v=>rowHtml(k,v)).join('');
+ themeApply();secRestore();favFill();
+ const th=$('[data-s=theme]');if(th&&CFG.themes){th.innerHTML=CFG.themes.map((t,i)=>'<option value="'+i+'">'+esc(t.name)+'</option>').join('');th.value=String(CFG.set.theme)}
+ $('#screens').innerHTML=CFG.screens.map((n,i)=>{const lock=(n==='CLOCK'||n==='SYSTEM');return '<label class="chk'+(lock?' lock':'')+'"><input type="checkbox" data-sc="'+i+'"'+((CFG.set.screenMask>>>i)&1||lock?' checked':'')+(lock?' disabled':'')+'>'+esc(n)+'</label>'}).join('');
+ $('#jump').innerHTML=CFG.screens.map((n,i)=>'<option value="'+i+'">'+esc(n)+'</option>').join('');
+ $('#pwwarn').style.display=CFG.webPassSet?'none':'block';
+ $('#curl').textContent="curl -d 'msg=hello' 'http://"+location.host+"/api/page?key="+CFG.apiKey+"'";
+ irList();dirty(false);
+}
+function gather(){
+ const o={set:{},wifi:[{},{},{},{},{}]};
+ $$('[data-k]').forEach(e=>{if(e.hasAttribute('data-secret')){if(e.value)o[e.dataset.k]=e.value}else o[e.dataset.k]=e.type=='number'?+e.value:e.value});
+ $$('[data-s]').forEach(e=>{if(e.type=='checkbox'){o.set[e.dataset.s]=e.checked;return}const v=e.value;o.set[e.dataset.s]=v=='true'?true:v=='false'?false:+v});
+ $$('[data-w]').forEach(e=>{const i=+e.dataset.w[0];if(e.dataset.w[1]=='s')o.wifi[i].ssid=e.value;else if(e.value)o.wifi[i].pass=e.value});
+ let m=0;$$('[data-sc]').forEach(e=>{if(e.checked)m|=(1<<+e.dataset.sc)});o.set.screenMask=m>>>0;
+ for(const k in LISTS)o[k]=[...$('#'+k).children].map(r=>{const v={};r.querySelectorAll('[data-f]').forEach(i=>v[i.dataset.f]=i.dataset.f=='port'?(+i.value||80):i.dataset.max!==undefined?fld(i):i.value.trim());return v}).filter(v=>Object.values(v)[0]);
+ o.set.favOrder=FAV.slice();
+ return o}
+async function saveCfg(){if(!CFG)return toast('Settings have not loaded yet - reload the page first',1);try{await post('/api/config',gather());toast('Saved to the stick');await load()}catch(e){}}
+async function load(){CFG=await api('/api/config');fill()}
+async function otaPost(act,btn){try{await post('/api/ota',{action:act});toast(act=='install'?'Installing - watch the stick':'Checking...')}catch(e){}}
+function otaPaint(){const m=$('#otamsg'),ib=$('#otaInstall');if(!m||!ST)return;if(ST.otaInstalling){m.textContent='Installing '+(ST.otaProg||0)+'% - do not unplug the stick';ib.style.display='none'}else if(ST.otaAvail){m.textContent='Update ready: '+ST.version+' to '+ST.otaVer+(ST.otaErr?' (last try: '+ST.otaErr+')':'');ib.style.display=''}else{m.textContent='On '+ST.version+(ST.otaOn?' - checks for new versions automatically':' - auto-update off')+(ST.otaErr?' (last error: '+ST.otaErr+')':'');ib.style.display='none'}}
+function irList(){const a=CFG.ir||[];$('#irs').innerHTML=a.length?a.map((c,i)=>'<div class="row"><input maxlength="13" value="'+esc(c.name)+'" data-ir="'+i+'"><span class="fix hint" style="margin:0">'+c.len+' pulses</span><button class="b ghost" onclick="irDo(\'rename\','+i+')">RENAME</button><button class="b" onclick="irDo(\'send\','+i+')">SEND</button><button class="b bad" onclick="tap2(this,()=>irDo(\'delete\','+i+'))">DEL</button></div>').join(''):'<p class="hint">No codes learned yet.</p>'}
+async function irDo(a,i){const name=(document.querySelector('[data-ir="'+i+'"]')||{}).value;await post('/api/ir/'+a,{i,name});toast(a=='send'?'Sent':'Done');if(a!='send')await load()}
+async function loadEntities(){toast('Asking Home Assistant...');try{const l=await api('/api/ha/entities');$('#ents').innerHTML=l.map(e=>'<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>').join('');toast(l.length+' entities loaded - start typing in an entity box')}catch(e){toast('Home Assistant: '+e.message,1)}}
+async function haTest(){const m=$('#hamsg');m.style.color='var(--dim)';m.textContent='Testing...';try{if($('[data-k=haToken]').value||$('[data-k=haUrl]').value!==CFG.haUrl)await saveCfg();const r=await api('/api/ha/test');m.style.color=r.ok?'var(--ok)':'var(--bad)';m.textContent=r.msg}catch(e){m.style.color='var(--bad)';m.textContent='Could not ask the stick: '+e.message}}
+function piToggle(){if(!ST)return;post('/api/pihole',ST.piKnown?{enable:!ST.piEnabled}:{}).then(()=>toast('Sent to Pi-hole v'+ST.piTarget))}
+function piPaint(){const b=$('#pibtn'),s=$('#pistate');if(!b||!ST)return;if(!ST.piKnown){b.textContent='TOGGLE PI-HOLE v'+ST.piTarget;s.textContent='state unknown';return}
+ if(ST.piEnabled){b.textContent='DISABLE FOR '+ST.piOffHours+' H';b.className='b bad';s.textContent='v'+ST.piTarget+' is blocking'}
+ else{b.textContent='ENABLE NOW';b.className='b';const l=ST.piOffUntil>ST.epoch?ST.piOffUntil-ST.epoch:0;s.textContent='v'+ST.piTarget+' is OFF'+(l?' - back in '+Math.floor(l/3600)+'h '+Math.floor(l%3600/60)+'m':'')}}
+function sendPage(){const m=$('#pmsg').value.trim();if(!m)return;post('/api/page',{msg:m,from:'panel'}).then(()=>{toast('Paged');$('#pmsg').value=''})}
+function jump(){post('/api/screen',{id:+$('#jump').value})}
+function backup(){api('/api/config').then(c=>{delete c.screens;delete c.ir;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(c,null,1)],{type:'application/json'}));a.download='shiv-settings.json';a.click()})}
+function restore(){if(!CFG)return toast('Settings have not loaded yet - reload the page first',1);const f=$('#rfile').files[0];if(!f)return toast('Choose a file first',1);f.text().then(t=>post('/api/config',JSON.parse(t))).then(()=>{toast('Restored');load()}).catch(e=>toast('Bad file: '+e.message,1))}
+function flash(){const f=$('#fw').files[0];if(!f)return toast('Choose the .bin first',1);
+ const fd=new FormData();fd.append('firmware',f,f.name);const x=new XMLHttpRequest();x.open('POST','/update');
+ x.upload.onprogress=e=>$('#fwmsg').textContent='Uploading... '+Math.round(100*e.loaded/e.total)+'%';
+ x.onload=()=>{$('#fwmsg').textContent=x.status==200?'Done - the stick is rebooting. This page reloads in 15 s.':'Failed: '+x.responseText;if(x.status==200)setTimeout(()=>location.reload(),15000)};
+ x.onerror=()=>$('#fwmsg').textContent='Upload failed (connection lost).';x.send(fd)}
+function fmtUp(s){return s>=86400?Math.floor(s/86400)+'d '+Math.floor(s%86400/3600)+'h':Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m'}
+async function poll(){
+ try{ST=await api('/api/status');$('#pill').className='';$('#pill').textContent='LINKED';$('#ver').textContent='firmware '+ST.version+' // '+ST.ip;
+  const S=[['BATTERY',ST.batt+'%'+(ST.usb?' USB':' on battery')],['POWER SOURCE',(['USB','USB (in+out)','BATTERY'][ST.pwrSrc]||'unknown')+' / '+(ST.vbus/1000).toFixed(1)+' V'],['WI-FI',ST.ssid+' '+ST.rssi+' dBm'],['TIME',ST.time||'--'],['UPTIME',fmtUp(ST.uptime)],['FREE MEMORY',ST.heap+' KB'],['ON SCREEN',ST.screenName],['MQTT',ST.mqtt?'connected':(CFG&&CFG.mqttHost?'off':'not set')],['LAST RESET',ST.resetWhy||'--'],['UNREAD PAGES',ST.unread],['DAEMON',ST.mood]];
+  $('#stats').innerHTML=S.map(s=>'<div class="stat"><span>'+s[0]+'</span><b>'+esc(s[1])+'</b></div>').join('');if(!CFG)load().catch(()=>{});piPaint();otaPaint()}
+ catch(e){$('#pill').className='off';$('#pill').textContent='OFFLINE / ASLEEP'}
+ if($('#t-status').classList.contains('on')&&!document.hidden)mirror()}
+async function mirror(){try{const r=await fetch('/api/screen.raw');if(!r.ok)return;const b=new Uint8Array(await r.arrayBuffer());if(b.length<240*135*2)return;
+ const cx=$('#mirror').getContext('2d'),im=cx.createImageData(240,135);for(let i=0,p=0;i<240*135;i++){const v=(b[2*i]<<8)|b[2*i+1];im.data[p++]=((v>>11)&31)*255/31;im.data[p++]=((v>>5)&63)*255/63;im.data[p++]=(v&31)*255/31;im.data[p++]=255}cx.putImageData(im,0,0)}catch(e){}}
+$('#nav').innerHTML=TABS.map(t=>'<button data-t="'+t[0]+'" onclick="tab(\''+t[0]+'\')">'+esc(t[1])+'</button>').join('');
+let t0='status';try{t0=localStorage.getItem('shivtab')||'status'}catch(e){}
+if(location.hash.length>1)t0=location.hash.slice(1);
+t0=TABALIAS[t0]||t0;tab(TABS.some(t=>t[0]==t0)?t0:'status');
+load().catch(e=>toast('Could not load settings: '+e.message,1));poll();setInterval(poll,2500);
+</script>
+</body>
+</html>

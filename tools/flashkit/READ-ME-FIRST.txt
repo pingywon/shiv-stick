@@ -1,0 +1,25 @@
+SHIV - two ways to get it onto the StickS3
+==========================================
+
+A) NO COMPILING (fastest, cannot hit library errors)
+   1. Unzip this whole zip to a normal local folder (Desktop is fine).
+   2. Plug in the StickS3. Close the Arduino IDE's serial monitor if it is open.
+   3. Open the folder  FLASH-NO-COMPILE  and double-click  flash.bat
+   4. Press Enter to auto-detect the port (or type it, e.g. COM5). About 20 seconds.
+   Your saved Wi-Fi and settings on the stick are kept.
+   If it cannot connect: long-press the StickS3 power key (download mode) and run it again.
+
+B) ARDUINO IDE (if you want to change the code)
+   1. Open  SHIV\SHIV.ino  from this unzipped LOCAL folder (not from a \\network path).
+   2. Tools: Board = M5StickS3, Partition Scheme = 8M with spiffs (3MB APP), PSRAM = OPI PSRAM.
+   3. Libraries: M5Unified, M5GFX, ArduinoJson 7. Upload.
+
+C) OVER WI-FI (once any SHIV version is running)
+   Open the stick's web page -> SYSTEM -> FIRMWARE UPDATE -> choose
+   FLASH-NO-COMPILE\SHIV.ino.bin
+
+The "CMD.EXE ... UNC paths are not supported" lines Arduino prints are harmless: they appear when
+the IDE was started from a \\192.168... network folder. Opening the sketch from a local folder
+makes them go away.
+
+Full guide: extras\README.md

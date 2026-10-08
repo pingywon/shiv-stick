@@ -1,0 +1,8 @@
+tools/render/build/
+.claude/
+firmware/*.bin
+secrets/
+*.local.json
+__pycache__/
+SHIV/build/
+firmware/

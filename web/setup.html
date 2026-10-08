@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SHIV // Wi-Fi setup</title>
+<style>
+body{margin:0;background:#04050e;color:#eaf6ff;font:18px/1.45 ui-monospace,Menlo,Consolas,monospace;padding:18px}
+h1{color:#00f0ff;letter-spacing:6px;text-shadow:2px 0 #ff2bd6;margin:0 0 4px;font-size:32px}
+p{color:#8fa3cc;margin:0 0 16px}
+.card{background:#0d1226;border-left:4px solid #ff2bd6;padding:16px;max-width:520px}
+label{display:block;color:#8fa3cc;font-size:15px;margin:14px 0 4px}
+input,select{width:100%;box-sizing:border-box;background:#060919;color:#eaf6ff;border:1px solid #141c3a;padding:12px;font:inherit}
+button{margin-top:18px;width:100%;background:#00f0ff;color:#001014;border:0;padding:14px;font:inherit;font-weight:700;letter-spacing:2px}
+button.g{background:none;border:1px solid #8fa3cc;color:#eaf6ff;margin-top:8px}
+#msg{color:#ffe14a;margin-top:14px;min-height:1.4em}
+</style>
+</head>
+<body>
+<h1>SHIV</h1><p>Wi-Fi setup. Pick your network, type its password, press SAVE.</p>
+<div class="card" id="why" style="display:none;border-left-color:#ffe14a;margin-bottom:14px"></div>
+<div class="card">
+  <label>Network</label><select id="ssid"><option value="">scanning...</option></select>
+  <button class="g" onclick="scan()">SCAN AGAIN</button>
+  <label>...or type the name</label><input id="ssid2" placeholder="only if it is hidden / not listed" autocapitalize="off" autocorrect="off">
+  <label>Wi-Fi password</label><input id="pass" type="password" autocapitalize="off" autocorrect="off">
+  <label>Username (work / school Wi-Fi only)</label><input id="user" placeholder="usually empty" autocapitalize="off" autocorrect="off">
+  <label>Control panel password (optional, user is "shiv")</label><input id="webPass" type="password">
+  <button onclick="save()">SAVE &amp; CONNECT</button>
+  <div id="msg"></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+const WHY={1:'was not in range. (SHIV only has a 2.4 GHz radio - a 5 GHz-only network never shows up.)',
+ 4:'did not accept the password - or the signal was too weak to finish the handshake.',
+ 5:'refused the username / password.',
+ 6:'is a work / school network that logs in with a USERNAME as well as a password. Pick it again and fill in the Username box.',
+ 7:'let SHIV in but never gave it an address. That usually means only registered devices are allowed - ask IT to allow this device: ',
+ 8:'uses a security type SHIV cannot do.',9:'refused SHIV.',10:'never answered within 20 seconds.'};
+function why(r){const bad=(r.last||[]).filter(x=>WHY[x.res]);if(!bad.length){$('#why').style.display='none';return}
+ $('#why').style.display='block';
+ $('#why').innerHTML='<b style="color:#ffe14a">Last attempt</b>'+bad.map(x=>'<p style="margin:8px 0 0;color:#eaf6ff">"'+esc(x.ssid)+'" '+WHY[x.res]+(x.res==7?esc(r.mac||''):'')+' <span style="color:#8fa3cc">(radio code '+x.code+')</span></p>').join('')}
+async function scan(){$('#ssid').innerHTML='<option value="">scanning...</option>';
+ for(let i=0;i<12;i++){try{const r=await (await fetch('/api/scan')).json();why(r);if(r.nets&&r.nets.length){$('#ssid').innerHTML=r.nets.map(n=>'<option value="'+esc(n.ssid)+'">'+esc(n.ssid)+'  ('+n.rssi+' dBm'+(n.open?', open':'')+(n.ent?', needs username':'')+')</option>').join('');return}}catch(e){}
+  await new Promise(r=>setTimeout(r,1500))}
+ $('#ssid').innerHTML='<option value="">nothing found - type the name below</option>'}
+async function save(){const ssid=$('#ssid2').value.trim()||$('#ssid').value;if(!ssid){$('#msg').textContent='Choose or type a network name.';return}
+ $('#msg').textContent='Saving...';
+ try{const r=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ssid,pass:$('#pass').value,user:$('#user').value.trim(),webPass:$('#webPass').value})});
+  $('#msg').textContent=r.ok?'Saved. SHIV is restarting and joining "'+ssid+'". Its screen will show the new address under SYSTEM.':'Error: '+await r.text()}
+ catch(e){$('#msg').textContent='Saved (the hotspot closed as SHIV restarted).'}}
+scan();
+</script>
+</body>
+</html>
